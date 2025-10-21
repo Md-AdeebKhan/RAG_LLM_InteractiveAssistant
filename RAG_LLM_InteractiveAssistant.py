@@ -4,68 +4,61 @@ import os
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.vectorstores import FAISS
+from langchain.vectorstores import Chroma
 from langchain.memory import ConversationBufferMemory
-from langchain.prompts import PromptTemplate
 from langchain.chains import ConversationalRetrievalChain
 import streamlit as st
 
-# Load environment variables and setup Groq LLM
+# Load environment variabltelles
 load_dotenv()
 groq_api_key = os.getenv("GROQ_API_KEY")
+
+# Initialize LLM
 llm = ChatGroq(model="llama-3.1-8b-instant", api_key=groq_api_key)
 
-# Load and process the PDF document
-loader = PyPDFLoader("D:\\health care pdf\\diabetes-training-manual.pdf")
+# Load PDF document
+loader = PyPDFLoader(r"D:\PDFs\question and answers.pdf")
 docs = loader.load()
 
-# Split document into chunks for processing
+# Split PDF into chunks
 splitter = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=20)
 docs_chunks = splitter.split_documents(docs)
 
-# Create embeddings and vector store for similarity search
+# Create embeddings and vector store
 embedding_model = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-vectorstore = FAISS.from_documents(docs_chunks, embedding_model)
+# Switch to this when building real applications
+vectorstore = Chroma.from_documents(
+    documents=docs_chunks,
+    embedding=embedding_model,
+    persist_directory="./chroma_db"
+)
 retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
+# No manual save needed - it auto-persists!retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
 
-# Simple prompt template for the LLM
-prompt = PromptTemplate.from_template("""
-Context: {context}
-Question: {question}
-Answer:
-""")
-
-# Memory to remember conversation history
+# Add memory for conversation context
 memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
-# Main chain that combines everything - LLM, retrieval, and memory
+# Create QA chain (default prompt)
 qa_chain = ConversationalRetrievalChain.from_llm(
     llm=llm,
     retriever=retriever,
     memory=memory,
-    output_key="answer",
     return_source_documents=False
 )
 
-# Streamlit web interface
-st.title("RAG LLM Interactive Assistant")
+# Streamlit UI
+st.title("RAG Assistant")
 
-# Keep track of chat history
-if "history" not in st.session_state:
-    st.session_state.history = []
+if "chat" not in st.session_state:
+    st.session_state.chat = []
 
-# User input field
-user_input = st.text_input("You:")
+question = st.text_input("Enter your question:")
 
-# When user asks a question
-if user_input:
-    # Get answer from our AI chain
-    response = qa_chain({"question": user_input})
-    
-    # Save the conversation
-    st.session_state.history.append((user_input, response["answer"]))
+if question:
+    answer = qa_chain({"question": question})["answer"]
+    st.session_state.chat.append((question, answer))
 
-# Show the conversation history
-for user_msg, bot_msg in st.session_state.history:
-    st.markdown(f"**You:** {user_msg}")
-    st.markdown(f"**Bot:** {bot_msg}")
+st.write("### Chat History")
+for q, a in st.session_state.chat:
+    st.write(f"user: {q}")
+    st.write(f"response: {a}")
