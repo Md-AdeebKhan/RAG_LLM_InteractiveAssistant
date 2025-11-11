@@ -1,105 +1,121 @@
+import streamlit as st
 from langchain_groq import ChatGroq
-import os
-# Updated Imports based on LangChain Modularization
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface.embeddings import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
-from langchain_core.memory import ConversationBufferMemory # FIX: Memory moved to langchain-core
+from langchain_core.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
-import streamlit as st
+import os
 
-# Load environment variable
-# Assuming st.secrets["api"]["GROQ_API_KEY"] is correctly configured in Streamlit secrets
-groq_api_key = st.secrets.get("api", {}).get("GROQ_API_KEY")
+# -------------------------------
+# STREAMLIT APP TITLE
+# -------------------------------
+st.set_page_config(page_title="📘 RAG LLM Interactive Assistant", layout="wide")
+st.title("📘 RAG LLM Interactive Assistant")
+st.write("Upload a PDF and chat with its content using Llama 3.1 (Groq).")
 
-# Check if the API key is available before initializing the LLM
+# -------------------------------
+# LOAD API KEY FROM STREAMLIT SECRETS
+# -------------------------------
+groq_api_key = st.secrets.get("api", {}).get("GROQ_API_KEY", None)
+
 if not groq_api_key:
-    st.error("GROQ_API_KEY not found in Streamlit secrets. Please configure it.")
+    st.error("❌ `GROQ_API_KEY` not found in Streamlit secrets. Please configure it in `.streamlit/secrets.toml`.")
     st.stop()
-    
-# Initialize LLM
-llm = ChatGroq(model="llama-3.1-8b-instant", api_key=groq_api_key)
 
-st.title("RAG Assistant")
+# -------------------------------
+# INITIALIZE LLM (Groq)
+# -------------------------------
+try:
+    llm = ChatGroq(model="llama-3.1-8b-instant", api_key=groq_api_key)
+except Exception as e:
+    st.error(f"Error initializing Groq model: {e}")
+    st.stop()
 
-uploaded_file = st.file_uploader("Upload your PDF", type="pdf")
-
-if "chat" not in st.session_state:
-    st.session_state.chat = []
+# -------------------------------
+# SESSION STATE INITIALIZATION
+# -------------------------------
 if "qa_chain" not in st.session_state:
     st.session_state.qa_chain = None
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
 
-if uploaded_file is not None and st.session_state.qa_chain is None:
-    with st.spinner("Processing PDF..."):
+# -------------------------------
+# PDF UPLOADER
+# -------------------------------
+uploaded_file = st.file_uploader("📄 Upload a PDF file", type=["pdf"])
+
+if uploaded_file and st.session_state.qa_chain is None:
+    with st.spinner("⏳ Processing PDF..."):
         try:
-            # 1. Save the uploaded file temporarily
-            # Using a context manager for safe file handling
-            with open("temp.pdf", "wb") as f:
+            # 1️⃣ Save the uploaded file temporarily
+            temp_path = "uploaded_temp.pdf"
+            with open(temp_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
-            
-            # 2. Load the document
-            loader = PyPDFLoader("temp.pdf")
+
+            # 2️⃣ Load PDF
+            loader = PyPDFLoader(temp_path)
             docs = loader.load()
 
-            # 3. Split PDF into chunks
-            splitter = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=20)
-            docs_chunks = splitter.split_documents(docs)
+            # 3️⃣ Split into chunks
+            text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+            docs_chunks = text_splitter.split_documents(docs)
 
-            # 4. Create embeddings and vector store
-            # Ensure 'sentence-transformers' package is installed
+            # 4️⃣ Create embeddings
             embedding_model = HuggingFaceEmbeddings(
-                model_name="sentence-transformers/all-MiniLM-L6-v2", 
-                # Set a path to avoid potential permission errors in Streamlit Cloud
-                cache_folder="./huggingface_cache" 
+                model_name="sentence-transformers/all-MiniLM-L6-v2",
+                cache_folder="./huggingface_cache"
             )
-            
-            # Ensure 'chromadb' package is installed
+
+            # 5️⃣ Create vector store
             vectorstore = Chroma.from_documents(
                 documents=docs_chunks,
                 embedding=embedding_model,
                 persist_directory="./chroma_db"
             )
+
             retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
 
-            # 5. Add memory for conversation context
+            # 6️⃣ Memory for conversation context
             memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
-            # 6. Create QA chain
+            # 7️⃣ Create the QA chain
             st.session_state.qa_chain = ConversationalRetrievalChain.from_llm(
                 llm=llm,
                 retriever=retriever,
                 memory=memory,
                 return_source_documents=False
             )
-            st.success("PDF processed successfully. You can now ask questions...")
+
+            st.success("✅ PDF processed successfully! You can now ask questions below.")
 
         except Exception as e:
-            st.error(f"❌ Error processing PDF: {e}")
+            st.error(f"❌ Error while processing the PDF: {e}")
 
-# UI for asking questions
-if st.session_state.qa_chain is not None:
-    question = st.text_input("Enter your question:")
+# -------------------------------
+# CHAT INTERFACE
+# -------------------------------
+if st.session_state.qa_chain:
+    user_question = st.text_input("💬 Ask a question about your PDF:")
 
-    if question:
-        with st.spinner("Thinking..."):
+    if user_question:
+        with st.spinner("🤔 Thinking..."):
             try:
-                # Use the QA chain
-                result = st.session_state.qa_chain({"question": question})
-                answer = result["answer"]
+                response = st.session_state.qa_chain({"question": user_question})
+                answer = response["answer"]
 
-                # Store in chat history
-                st.session_state.chat.append((question, answer))
-            
+                # Save to chat history
+                st.session_state.chat_history.append((user_question, answer))
+
             except Exception as e:
-                st.error(f"Error during retrieval/generation: {e}")
+                st.error(f"⚠️ Error generating answer: {e}")
 
     # Display chat history
-    if st.session_state.chat:
-        st.write("### Chat History")
-        # Display history in reverse order (newest on top)
-        for q, a in st.session_state.chat[::-1]:
+    if st.session_state.chat_history:
+        st.subheader("🧠 Chat History")
+        for q, a in st.session_state.chat_history[::-1]:
             st.markdown(f"**You:** {q}")
             st.markdown(f"**Assistant:** {a}")
 else:
-    st.info("Upload a PDF to begin.")
+    st.info("📤 Upload a PDF to begin chatting with your document.")
