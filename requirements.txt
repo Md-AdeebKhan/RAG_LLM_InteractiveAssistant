@@ -1,14 +1,14 @@
 # REQUIRED LANGCHAIN PACKAGES
 streamlit
-langchain                 # Keep this for the 'chains' and general utilities
-langchain-core            # <-- NEW ADDITION: For memory components (like ConversationBufferMemory)
+langchain                 
+langchain-core            # <-- CRITICAL ADDITION FOR MEMORY/CORE COMPONENTS
 langchain-groq
 langchain-community
 langchain-text-splitters
 langchain-huggingface
 langchain-chroma
 
-# REQUIRED THIRD-PARTY LIBRARIES (CRUCIAL FOR DEPENDENCIES)
+# REQUIRED THIRD-PARTY LIBRARIES
 pypdf
 chromadb
 sentence-transformers
