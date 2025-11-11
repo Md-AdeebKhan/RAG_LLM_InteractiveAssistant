@@ -1,6 +1,7 @@
 # REQUIRED LANGCHAIN PACKAGES
 streamlit
-langchain
+langchain                 # Keep this for the 'chains' and general utilities
+langchain-core            # <-- NEW ADDITION: For memory components (like ConversationBufferMemory)
 langchain-groq
 langchain-community
 langchain-text-splitters
@@ -8,6 +9,6 @@ langchain-huggingface
 langchain-chroma
 
 # REQUIRED THIRD-PARTY LIBRARIES (CRUCIAL FOR DEPENDENCIES)
-pypdf                      # Dependency for PyPDFLoader
-chromadb                   # Dependency for Chroma vectorstore
-sentence-transformers      # Dependency for HuggingFaceEmbeddings
+pypdf
+chromadb
+sentence-transformers
