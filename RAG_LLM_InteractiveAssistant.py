@@ -1,13 +1,12 @@
 from langchain_groq import ChatGroq
 import os
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain.embeddings import HuggingFaceEmbeddings
-from langchain.vectorstores import Chroma
+from langchain_community.document_loaders import PyPDFLoader        # Moved to langchain-community
+from langchain_text_splitters import RecursiveCharacterTextSplitter  # Moved to langchain-text-splitters
+from langchain_huggingface.embeddings import HuggingFaceEmbeddings # <-- FIX THIS LINE
+from langchain_chroma import Chroma                                # Best practice: Move to langchain-chroma
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import ConversationalRetrievalChain
 import streamlit as st
-# Load environment variabltelles
 groq_api_key = st.secrets["api"]["GROQ_API_KEY"]
 
 # Initialize LLM
