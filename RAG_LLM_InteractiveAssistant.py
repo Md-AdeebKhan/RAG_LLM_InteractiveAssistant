@@ -1,5 +1,4 @@
 from langchain_groq import ChatGroq
-from dotenv import load_dotenv
 import os
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -10,8 +9,7 @@ from langchain.chains import ConversationalRetrievalChain
 import streamlit as st
 
 # Load environment variabltelles
-load_dotenv()
-groq_api_key = os.getenv("GROQ_API_KEY")
+groq_api_key = st.secrets["api"]["GROQ_API_KEY"]
 
 # Initialize LLM
 llm = ChatGroq(model="llama-3.1-8b-instant", api_key=groq_api_key)
