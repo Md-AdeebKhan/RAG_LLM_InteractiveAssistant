@@ -1,9 +1,10 @@
-langchain
-langchain-community
-langchain-text-splitters
-langchain-groq
+# requirements.txt
 streamlit
-python-dotenv
-pypdf
-chromadb
-sentence-transformers
+langchain
+langchain-groq            # For ChatGroq
+langchain-community       # For PyPDFLoader (already updated in your code)
+langchain-text-splitters  # For RecursiveCharacterTextSplitter (already updated in your code)
+langchain-chroma          # For Chroma vectorstore (A good idea to include this explicitly too)
+langchain-huggingface     # <-- The new package required for HuggingFaceEmbeddings
+sentence-transformers     # <-- The underlying library for the embeddings model
+pypdf                     # <-- The dependency for PyPDFLoader
