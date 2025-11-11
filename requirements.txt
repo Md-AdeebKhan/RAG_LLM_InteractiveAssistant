@@ -1,14 +1,14 @@
-# LangChain Ecosystem Packages
+# REQUIRED LANGCHAIN PACKAGES
 streamlit
 langchain
-langchain-core            # For memory and core utilities
+langchain-core            # <--- MUST BE PRESENT
 langchain-groq
-langchain-community       # For PyPDFLoader
-langchain-text-splitters  # For RecursiveCharacterTextSplitter
-langchain-huggingface     # For HuggingFaceEmbeddings
-langchain-chroma          # For Chroma vectorstore
+langchain-community
+langchain-text-splitters
+langchain-huggingface
+langchain-chroma
 
-# Third-Party Dependencies (Crucial for successful installation!)
+# REQUIRED THIRD-PARTY LIBRARIES (CRUCIAL FOR DEPENDENCIES)
 pypdf                     # Dependency for PyPDFLoader
 chromadb                  # Dependency for Chroma
 sentence-transformers     # Dependency for HuggingFaceEmbeddings
