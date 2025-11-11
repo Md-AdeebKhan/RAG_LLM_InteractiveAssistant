@@ -3,7 +3,7 @@ import os
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface.embeddings import HuggingFaceEmbeddings
-from langchain_chroma import Chroma  # Use the specialized Chroma package
+from langchain_chroma import Chroma # Use the specialized Chroma package
 from langchain.memory import ConversationBufferMemory # This one is still in core 'langchain'
 from langchain.chains import ConversationalRetrievalChain
 import streamlit as st
