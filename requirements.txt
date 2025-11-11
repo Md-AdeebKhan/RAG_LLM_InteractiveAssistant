@@ -1,14 +1,16 @@
-# REQUIRED LANGCHAIN PACKAGES
-streamlit
-langchain
-langchain-core            # <--- MUST BE PRESENT
-langchain-groq
+# Core Streamlit app
+streamlit==1.39.0
+
+# LangChain ecosystem (modular packages)
+langchain==0.3.0
+langchain-core
 langchain-community
+langchain-groq
 langchain-text-splitters
 langchain-huggingface
 langchain-chroma
 
-# REQUIRED THIRD-PARTY LIBRARIES (CRUCIAL FOR DEPENDENCIES)
-pypdf                     # Dependency for PyPDFLoader
-chromadb                  # Dependency for Chroma
-sentence-transformers     # Dependency for HuggingFaceEmbeddings
+# Vector DB + Embeddings
+chromadb
+sentence-transformers
+pypdf
