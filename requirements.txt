@@ -1,11 +1,13 @@
-# requirements.txt for your RAG LLM app
+# REQUIRED LANGCHAIN PACKAGES
 streamlit
 langchain
 langchain-groq
 langchain-community
 langchain-text-splitters
 langchain-huggingface
-langchain-chroma         # <--- Important addition for Chroma
-pypdf                    # <--- Dependency for PyPDFLoader
-chromadb                 # <--- Dependency for Chroma vectorstore
-sentence-transformers    # <--- Dependency for HuggingFaceEmbeddings# <-- The dependency for PyPDFLoader
+langchain-chroma
+
+# REQUIRED THIRD-PARTY LIBRARIES (CRUCIAL FOR DEPENDENCIES)
+pypdf                      # Dependency for PyPDFLoader
+chromadb                   # Dependency for Chroma vectorstore
+sentence-transformers      # Dependency for HuggingFaceEmbeddings
